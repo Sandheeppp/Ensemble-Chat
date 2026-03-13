@@ -1,0 +1,86 @@
+=========================================
+DISTRIBUTED CHAT COORDINATION DEMO COMMANDS
+=========================================
+
+-----------------------------------------
+1. SAME MACHINE (IN-PROCESS) DEMOS
+(Easiest - runs all 3 nodes in one terminal)
+-----------------------------------------
+
+# Demo 1: Leader Election & Failure Recovery
+go run ./demo/demo_leader_failure/
+
+# Demo 2: Mutual Exclusion (Lease-Based Locking)
+go run ./demo/demo_mutual_exclusion/
+
+# Demo 3: Consensus (Two-Phase Commit)
+go run ./demo/demo_consensus/
+
+-----------------------------------------
+2. SAME MACHINE (TCP) DEMO
+(Run in 3 separate terminals)
+-----------------------------------------
+# Terminal 1
+go run ./cmd/coordinator/ -id=0 -addr=:7000 -peers="1=127.0.0.1:7001,2=127.0.0.1:7002"
+
+# Terminal 2
+go run ./cmd/coordinator/ -id=1 -addr=:7001 -peers="0=127.0.0.1:7000,2=127.0.0.1:7002"
+
+# Terminal 3
+go run ./cmd/coordinator/ -id=2 -addr=:7002 -peers="0=127.0.0.1:7000,1=127.0.0.1:7001"
+
+-----------------------------------------
+3. TWO MACHINES (TCP) DEMO
+(Example IPs: Machine A = 192.168.1.100, Machine B = 192.168.1.101)
+-----------------------------------------
+
+# Prerequisites (Run as Admin in PowerShell on both machines):
+New-NetFirewallRule -DisplayName "DS CaseStudy" -Direction Inbound -Protocol TCP -LocalPort 7000-7002 -Action Allow
+
+# --- ON MACHINE A ---
+# Terminal 1 (Node 0)
+go run ./cmd/coordinator/ -id=0 -addr=:7000 -peers="1=192.168.1.100:7001,2=192.168.1.101:7002"
+
+# Terminal 2 (Node 1)
+go run ./cmd/coordinator/ -id=1 -addr=:7001 -peers="0=192.168.1.100:7000,2=192.168.1.101:7002"
+
+# --- ON MACHINE B ---
+# Terminal 1 (Node 2)
+go run ./cmd/coordinator/ -id=2 -addr=:7002 -peers="0=192.168.1.100:7000,1=192.168.1.100:7001"
+
+-----------------------------------------
+4. INTERACTIVE DEMO COMMANDS
+(Type these in the LEADER's terminal once election completes)
+-----------------------------------------
+
+# Check cluster state
+status
+
+# --- Mutual Exclusion Demo ---
+# 1. Acquire lock
+lock General_Chat Server_A
+
+# 2. Try to acquire same lock (will be denied)
+lock General_Chat Server_B
+
+# 3. View active leases
+leases
+
+# 4. Release lock
+unlock General_Chat Server_A
+
+# --- Consensus (2PC) Demo ---
+# 1. Propose adding a chat room
+propose tx-001 add_room Gaming_Lounge Server_Alpha:9001
+
+# 2. Propose adding another room
+propose tx-002 add_room Study_Group Server_Beta:9002
+
+# 3. Propose registering a server
+propose tx-003 add_server Server_Gamma 192.168.1.103:9003
+
+# 4. View replicated routing table (Do this on leader AND a follower)
+state
+
+# Shutdown gracefully
+quit
