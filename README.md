@@ -156,10 +156,10 @@ go build ./...
 
 | Node | Role | IP Address | Port |
 |------|------|-----------|------|
-| Node 0 | Server (You) | 10.207.4.131 | 9000 |
-| Node 1 | Member 2 | 10.207.4.156 | 9001 |
-| Node 2 | Member 3 | 10.207.4.197 | 9002 |
-| Node 3 | Member 4 | 10.207.4.193 | 9003 |
+| Node 0 | Server (You) | 192.168.1.1 | 9000 |
+| Node 1 | Member 2 | 192.168.1.2 | 9001 |
+| Node 2 | Member 3 | 192.168.1.3 | 9002 |
+| Node 3 | Member 4 | 192.168.1.4 | 9003 |
 
 ### Step 0: Prerequisites (all machines)
 
@@ -181,24 +181,24 @@ New-NetFirewallRule -DisplayName "DS-CaseStudy" -Direction Inbound -Protocol TCP
 
 ### Step 1: Start all 4 Nodes
 
-**Your Machine (Node 0 - 10.207.4.131):**
+**Your Machine (Node 0 - 192.168.1.1):**
 ```bash
-go run ./cmd/coordinator/ -id=0 -addr=:9000 -peers="1=10.207.4.156:9001,2=10.207.4.197:9002,3=10.207.4.193:9003"
+go run ./cmd/coordinator/ -id=0 -addr=:9000 -peers="1=192.168.1.2:9001,2=192.168.1.3:9002,3=192.168.1.4:9003"
 ```
 
-**Member 2 (Node 1 - 10.207.4.156):**
+**Member 2 (Node 1 - 192.168.1.2):**
 ```bash
-go run ./cmd/coordinator/ -id=1 -addr=:9001 -peers="0=10.207.4.131:9000,2=10.207.4.197:9002,3=10.207.4.193:9003"
+go run ./cmd/coordinator/ -id=1 -addr=:9001 -peers="0=192.168.1.1:9000,2=192.168.1.3:9002,3=192.168.1.4:9003"
 ```
 
-**Member 3 (Node 2 - 10.207.4.197):**
+**Member 3 (Node 2 - 192.168.1.3):**
 ```bash
-go run ./cmd/coordinator/ -id=2 -addr=:9002 -peers="0=10.207.4.131:9000,1=10.207.4.156:9001,3=10.207.4.193:9003"
+go run ./cmd/coordinator/ -id=2 -addr=:9002 -peers="0=192.168.1.1:9000,1=192.168.1.2:9001,3=192.168.1.4:9003"
 ```
 
-**Member 4 (Node 3 - 10.207.4.193):**
+**Member 4 (Node 3 - 192.168.1.4):**
 ```bash
-go run ./cmd/coordinator/ -id=3 -addr=:9003 -peers="0=10.207.4.131:9000,1=10.207.4.156:9001,2=10.207.4.197:9002"
+go run ./cmd/coordinator/ -id=3 -addr=:9003 -peers="0=192.168.1.1:9000,1=192.168.1.2:9001,2=192.168.1.3:9002"
 ```
 
 > **Wait ~3 seconds** - you will see Bully election logs. Node 3 (highest ID) becomes LEADER.
@@ -285,20 +285,20 @@ Type `status` on each terminal:
 
 **On the LEADER's terminal:**
 ```
-> propose ADD_SERVER Server_Beta 10.207.4.156:9001
+> propose ADD_SERVER Server_Beta 192.168.1.2:9001
   [PROPOSE] Broadcasting to 3 peers (need 3/4 votes)
   [COMMITTED] Proposal committed by majority
 
 > state
   Consensus State (Routing Table):
-    Server_Beta = 10.207.4.156:9001
+    Server_Beta = 192.168.1.2:9001
 ```
 
 **On any follower:**
 ```
 > state
   Consensus State (Routing Table):
-    Server_Beta = 10.207.4.156:9001
+    Server_Beta = 192.168.1.2:9001
 ```
 
 ### Step 7: Demonstrate Leader Failure & Re-Election
